@@ -11,7 +11,10 @@
         "disparosRealizados": 221,
         "naveJugadorFinal": {
           "vida": 0,
-          "posicionFinal": { "x": 128, "y": 620 }
+          "posicionFinal": {
+            "x": 128,
+            "y": 620
+          }
         },
         "configuracionNivelUsada": {
           "velocidadEnemigos": 2.5,
@@ -31,13 +34,64 @@
         "disparosRealizados": 145,
         "naveJugadorFinal": {
           "vida": 1,
-          "posicionFinal": { "x": 300, "y": 620 }
+          "posicionFinal": {
+            "x": 300,
+            "y": 620
+          }
         },
         "configuracionNivelUsada": {
-          "velocidadEnemigos": 2.0,
-          "frecuenciaDisparoEnemigo": 1.0,
+          "velocidadEnemigos": 2,
+          "frecuenciaDisparoEnemigo": 1,
           "cantidadEnemigosInicial": 12
         }
+      }
+    },
+    {
+      "id": "id_57mbwmrimixonlcv",
+      "nombreUsuario": "JugadorLocal",
+      "valorPuntuacion": 1450,
+      "fechaRegistro": "2025-12-08T21:48:07.519Z",
+      "detallesPartida": {
+        "motivo": "victoria",
+        "mensaje": "Todos los enemigos salieron de la pantalla. Oleada terminada.",
+        "tiempoSegundos": 16.26259999999549,
+        "enemigosRestantes": 2
+      }
+    },
+    {
+      "id": "id_9zq7gw15mixoo54f",
+      "nombreUsuario": "JugadorLocal",
+      "valorPuntuacion": 1350,
+      "fechaRegistro": "2025-12-08T21:48:33.135Z",
+      "detallesPartida": {
+        "motivo": "victoria",
+        "mensaje": "Todos los enemigos salieron de la pantalla. Oleada terminada.",
+        "tiempoSegundos": 16.252699999995468,
+        "enemigosRestantes": 3
+      }
+    },
+    {
+      "id": "id_ukuyzpbrmixoocue",
+      "nombreUsuario": "JugadorLocal",
+      "valorPuntuacion": 0,
+      "fechaRegistro": "2025-12-08T21:48:43.142Z",
+      "detallesPartida": {
+        "motivo": "derrota",
+        "mensaje": "La nave fue destruida",
+        "tiempoSegundos": 5.296299999998519,
+        "enemigosRestantes": 12
+      }
+    },
+    {
+      "id": "id_4oufupxnmixopg9u",
+      "nombreUsuario": "JugadorLocal",
+      "valorPuntuacion": 1100,
+      "fechaRegistro": "2025-12-08T21:49:34.242Z",
+      "detallesPartida": {
+        "motivo": "derrota",
+        "mensaje": "La nave fue destruida",
+        "tiempoSegundos": 8.261200000000029,
+        "enemigosRestantes": 4
       }
     }
   ],
@@ -49,14 +103,20 @@
         {
           "id": "e1",
           "tipo": "basico",
-          "posicion": { "x": 50, "y": 40 },
+          "posicion": {
+            "x": 50,
+            "y": 40
+          },
           "velocidad": 1.6,
           "valorPuntuacion": 100
         },
         {
           "id": "e2",
           "tipo": "rapido",
-          "posicion": { "x": 110, "y": 40 },
+          "posicion": {
+            "x": 110,
+            "y": 40
+          },
           "velocidad": 2.4,
           "valorPuntuacion": 150
         }
@@ -66,19 +126,28 @@
           "id": "pr1",
           "origen": "jugador",
           "danio": 1,
-          "posicionInicial": { "x": 128, "y": 620 }
+          "posicionInicial": {
+            "x": 128,
+            "y": 620
+          }
         },
         {
           "id": "pr2",
           "origen": "enemigo",
           "danio": 1,
-          "posicionInicial": { "x": 110, "y": 60 }
+          "posicionInicial": {
+            "x": 110,
+            "y": 60
+          }
         }
       ],
       "naveJugador": {
         "id": "n1",
         "vidaInicial": 3,
-        "posicionInicial": { "x": 128, "y": 620 },
+        "posicionInicial": {
+          "x": 128,
+          "y": 620
+        },
         "velocidad": 300
       },
       "configuracionNivel": {

@@ -11,7 +11,8 @@ export class Enemigo {
     public danio: number,
     public valorPuntuacion: number,
     public tamaño: { ancho: number; alto: number } = { ancho: 32, alto: 24 },
-    public vida: number = 1
+    public vida: number = 1,
+    public spriteUrl: string = "/enemigo_basico.png"
   ) {}
 
   recibirDanio(d: number) {

@@ -5,7 +5,7 @@ export class Puntuacion {
     public id: string,
     public nombreUsuario: string,
     public valorPuntuacion: number,
-    public fechaRegistro: string, // ISO
+    public fechaRegistro: string,
     public detallesPartida: DetallesPartida
   ) {}
 }

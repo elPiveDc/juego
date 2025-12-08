@@ -1,21 +1,15 @@
-import React, { useEffect, useState } from "react";
-import { AdaptadorAxios } from "../../infraestructura/http/AdaptadorAxios";
-import { RepositorioPuntuacionJsonServer } from "../../infraestructura/repositorios/RepositorioPuntuacionJsonServer";
-import { ObtenerMejoresPuntuaciones } from "../../aplicacion/casosUso/ObtenerMejoresPuntuaciones";
-import { Puntuacion } from "../../dominio/entidades/Puntuacion";
+import { useTopPuntuaciones } from "../hooks/useTopPuntuaciones";
 
-export default function ComponenteTablaPuntuaciones() {
-  const [top, setTop] = useState<Puntuacion[]>([]);
-  const http = new AdaptadorAxios("http://localhost:3000");
-  const repo = new RepositorioPuntuacionJsonServer(http);
+export default function TablaPuntuaciones() {
+  const { puntuaciones, cargando, error } = useTopPuntuaciones(10);
 
-  useEffect(() => {
-    ObtenerMejoresPuntuaciones(repo, 10).then(setTop).catch(console.error);
-  }, []);
+  if (cargando) return <p>Cargando...</p>;
+  if (error) return <p>Error: {error}</p>;
 
   return (
     <div style={{ marginTop: 20 }}>
       <h3>Top 10</h3>
+
       <table style={{ width: "100%", borderCollapse: "collapse" }}>
         <thead>
           <tr>
@@ -25,8 +19,9 @@ export default function ComponenteTablaPuntuaciones() {
             <th>Fecha</th>
           </tr>
         </thead>
+
         <tbody>
-          {top.map((p, i) => (
+          {puntuaciones.map((p, i) => (
             <tr key={p.id}>
               <td>{i + 1}</td>
               <td>{p.nombreUsuario}</td>

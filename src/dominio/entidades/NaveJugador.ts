@@ -4,6 +4,7 @@ export class NaveJugador {
   constructor(
     public id: string,
     public vida: number,
+    public spriteUrl: string = "/mi_negocio.png",
     public posicion: Vector2D,
     public velocidad: number,
     public tamaño: { ancho: number; alto: number } = { ancho: 40, alto: 28 }

@@ -12,6 +12,7 @@ export function IniciarNuevaPartida(
   const nave = new NaveJugador(
     generadorID.generar(),
     3,
+    "/mi_negocio.png",
     new Vector2D(anchoPantalla / 2 - 20, 600),
     300
   );
@@ -35,7 +36,8 @@ export function IniciarNuevaPartida(
         tipo === "tanque" ? 2 : 1,
         valor,
         undefined,
-        tipo === "tanque" ? 3 : 1
+        tipo === "tanque" ? 3 : 1,
+        "/enemigo_basico.png"
       )
     );
   }
