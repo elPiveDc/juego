@@ -21,36 +21,31 @@ export function useJuegoConPuntuaciones(
   alto: number,
   limit: number = 10
 ) {
-  // --- Estados del juego ---
+  // --- Estados públicos ---
   const [puntuacion, setPuntuacion] = useState(0);
   const [gameOver, setGameOver] = useState<null | GameOver>(null);
 
+  // --- Refs internos (fuente de verdad del juego) ---
   const estadoRef = useRef<EstadoJuego | null>(null);
   const rafRef = useRef<number | null>(null);
   const guardadoRef = useRef(false);
   const ultimoRef = useRef<number>(performance.now());
+  const inputRef = useRef({ moverX: 0, disparar: false });
 
+  // --- Instancias estables (useRef para que no cambien entre renders) ---
   const motor = useRef(new MotorFisicoJuego()).current;
   const gen = useRef(new GeneradorIDUnico()).current;
   const http = useRef(new AdaptadorAxios("http://localhost:3000")).current;
   const repo = useRef(new RepositorioPuntuacionJsonServer(http)).current;
+  const configuracion = useRef(new ConfiguracionNivel(80, 1.2, 12, 0.02)).current;
 
-  const configuracion = useRef(
-    new ConfiguracionNivel(80, 1.2, 12, 0.02)
-  ).current;
-  const inputRef = useRef({ moverX: 0, disparar: false });
-
-  // --- Estados de puntuaciones ---
+  // --- Estados de UI / puntuaciones ---
   const [puntuaciones, setPuntuaciones] = useState<Puntuacion[]>([]);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Disponible en todo el hook
-  function detenerYGuardar(
-    tipo: "derrota" | "victoria",
-    mensaje: string,
-    detalles: any = {}
-  ) {
+  // --- Guardar y terminar partida ---
+  async function detenerYGuardar(tipo: "derrota" | "victoria", mensaje: string, detalles: any = {}) {
     if (rafRef.current != null) {
       cancelAnimationFrame(rafRef.current);
       rafRef.current = null;
@@ -58,18 +53,26 @@ export function useJuegoConPuntuaciones(
     if (!guardadoRef.current) {
       guardadoRef.current = true;
       const punt = estadoRef.current?.puntuacion ?? puntuacion;
-      GuardarPuntuacionFinal(repo, gen, "JugadorLocal", punt, {
-        motivo: tipo,
-        mensaje,
-        tiempoSegundos: estadoRef.current?.tiempoTranscurrido ?? 0,
-        enemigosRestantes: estadoRef.current?.enemigos.length ?? 0,
-        ...detalles,
-      }).catch((e) => console.error("Error guardando puntuación", e));
+      try {
+        await GuardarPuntuacionFinal(repo, gen, "JugadorLocal", punt, {
+          motivo: tipo,
+          mensaje,
+          tiempoSegundos: estadoRef.current?.tiempoTranscurrido ?? 0,
+          enemigosRestantes: estadoRef.current?.enemigos.length ?? 0,
+          ...detalles,
+        });
+        // refrescar puntuaciones después de guardar
+        const nuevas = await ObtenerMejoresPuntuaciones(repo, limit);
+        setPuntuaciones(nuevas);
+      } catch (e) {
+        console.error("Error guardando o refrescando puntuaciones", e);
+      }
     }
     setGameOver({ tipo, mensaje });
   }
 
-  // Única función de loop reutilizable
+
+  // --- Loop del juego ---
   function loop(now: number) {
     const delta = (now - ultimoRef.current) / 1000;
     ultimoRef.current = now;
@@ -97,7 +100,6 @@ export function useJuegoConPuntuaciones(
       estadoRef.current = nuevo;
       setPuntuacion(nuevo.puntuacion);
 
-      // Fin de partida por victoria
       const sinEnemigos = nuevo.enemigos.length === 0;
       const todosFuera =
         nuevo.enemigos.length > 0 &&
@@ -121,7 +123,7 @@ export function useJuegoConPuntuaciones(
     rafRef.current = requestAnimationFrame(loop);
   }
 
-  // Iniciar partida al montar o cuando cambie el ancho
+  // --- Inicializar partida al montar (no arranca el loop) ---
   useEffect(() => {
     const partida = IniciarNuevaPartida(gen, configuracion, ancho);
     estadoRef.current = new EstadoJuego(
@@ -136,22 +138,72 @@ export function useJuegoConPuntuaciones(
     guardadoRef.current = false;
     ultimoRef.current = performance.now();
 
-    // Lanzar loop
-    rafRef.current = requestAnimationFrame(loop);
-
     return () => {
       if (rafRef.current != null) cancelAnimationFrame(rafRef.current);
       rafRef.current = null;
     };
-  }, [ancho, alto, configuracion, gen, motor, repo]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ancho, alto, gen, configuracion]); // motor, repo, http son refs estables
 
-  // Input keyboard
+  // --- Exponer iniciar con protección contra múltiples llamadas ---
+  function iniciar() {
+    // reset de inputs por si quedó algo
+    inputRef.current.moverX = 0;
+    inputRef.current.disparar = false;
+    ultimoRef.current = performance.now();
+    if (rafRef.current == null) {
+      rafRef.current = requestAnimationFrame(loop);
+    }
+  }
+
+  // --- Reiniciar (siempre reinicia y arranca loop) ---
+  function reiniciar() {
+    if (rafRef.current != null) {
+      cancelAnimationFrame(rafRef.current);
+      rafRef.current = null;
+    }
+    guardadoRef.current = false;
+    setPuntuacion(0);
+    setGameOver(null);
+
+    const partida = IniciarNuevaPartida(gen, configuracion, ancho);
+    estadoRef.current = new EstadoJuego(
+      partida.nave,
+      partida.enemigos,
+      partida.proyectiles,
+      partida.puntuacion,
+      partida.tiempoTranscurrido
+    );
+
+    ultimoRef.current = performance.now();
+    rafRef.current = requestAnimationFrame(loop);
+  }
+
+  // --- Obtener mejores puntuaciones (efecto separado) ---
+  useEffect(() => {
+    let mounted = true;
+    ObtenerMejoresPuntuaciones(repo, limit)
+      .then((data) => {
+        if (mounted) setPuntuaciones(data);
+      })
+      .catch((e) => {
+        if (mounted) setError(e.message);
+      })
+      .finally(() => {
+        if (mounted) setCargando(false);
+      });
+    return () => {
+      mounted = false;
+    };
+  }, [repo, limit]);
+
+  // --- Input keyboard (registrado una vez) ---
   useEffect(() => {
     function keyDown(e: KeyboardEvent) {
       if (e.key === "ArrowLeft") inputRef.current.moverX = -1;
       if (e.key === "ArrowRight") inputRef.current.moverX = 1;
       if (e.key === " " || e.key === "Spacebar") {
-        e.preventDefault(); // 🔑 evita que la página se desplace
+        e.preventDefault();
         inputRef.current.disparar = true;
       }
     }
@@ -162,7 +214,7 @@ export function useJuegoConPuntuaciones(
       if (e.key === "ArrowRight" && inputRef.current.moverX === 1)
         inputRef.current.moverX = 0;
       if (e.key === " " || e.key === "Spacebar") {
-        e.preventDefault(); // también aquí por seguridad
+        e.preventDefault();
         inputRef.current.disparar = false;
       }
     }
@@ -175,39 +227,12 @@ export function useJuegoConPuntuaciones(
     };
   }, []);
 
-  // Reiniciar partida desde UI
-  function reiniciar() {
-    if (rafRef.current != null) cancelAnimationFrame(rafRef.current);
-    guardadoRef.current = false;
-    setPuntuacion(0);
-    setGameOver(null);
-
-    const partida = IniciarNuevaPartida(gen, configuracion, ancho);
-    estadoRef.current = new EstadoJuego(
-      partida.nave,
-      partida.enemigos,
-      partida.proyectiles,
-      partida.puntuacion,
-      partida.tiempoTranscurrido
-    );
-
-    // Resetear el tiempo del delta y relanzar
-    ultimoRef.current = performance.now();
-    rafRef.current = requestAnimationFrame(loop);
-  }
-
-  // Obtener mejores puntuaciones
-  useEffect(() => {
-    ObtenerMejoresPuntuaciones(repo, limit)
-      .then((data) => setPuntuaciones(data))
-      .catch((e) => setError(e.message))
-      .finally(() => setCargando(false));
-  }, [repo, limit]);
-
+  // --- API pública del hook ---
   return {
     estadoRef,
     puntuacion,
     gameOver,
+    iniciar,
     reiniciar,
     puntuaciones,
     cargando,

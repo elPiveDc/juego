@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useJuegoConPuntuaciones } from "../hooks/useJuegoConPuntuaciones";
+import { useCanvasRenderer } from "../hooks/useCanvasRenderer";
 
 type Props = { ancho?: number; alto?: number };
 
@@ -14,132 +15,20 @@ export default function JuegoConPuntuaciones({
     estadoRef,
     puntuacion,
     gameOver,
+    iniciar,
     reiniciar,
     puntuaciones,
     cargando,
     error,
   } = useJuegoConPuntuaciones(ancho, alto, 10);
 
+  useCanvasRenderer(canvasRef, estadoRef, ancho, alto, juegoIniciado);
+
   useEffect(() => {
     if (!juegoIniciado) return;
-
-    let raf = 0;
-    function renderLoop() {
-      const estado = estadoRef.current;
-      const canvas = canvasRef.current;
-      if (!estado || !canvas) {
-        raf = requestAnimationFrame(renderLoop);
-        return;
-      }
-
-      const ctx = canvas.getContext("2d");
-      if (!ctx) return;
-
-      // Fondo
-      ctx.clearRect(0, 0, ancho, alto);
-      ctx.fillStyle = "#cedeffff"; // fondo oscuro para contraste
-      ctx.fillRect(0, 0, ancho, alto);
-
-      // Opcional: efecto de estrellas de fondo (sutil)
-      ctx.fillStyle = "rgba(255,255,255,0.03)";
-      for (let i = 0; i < 30; i++) {
-        const x = (i * 97) % ancho;
-        const y = (i * 53) % alto;
-        ctx.fillRect(x, y, 1, 1);
-      }
-
-      // NAVE
-      if (estado.nave.spriteUrl) {
-        const naveImg = new Image();
-        naveImg.src = estado.nave.spriteUrl;
-        // dibujar cuando cargue (no bloquear)
-        if (naveImg.complete) {
-          ctx.drawImage(
-            naveImg,
-            estado.nave.posicion.x,
-            estado.nave.posicion.y,
-            estado.nave.tamaño.ancho,
-            estado.nave.tamaño.alto
-          );
-        } else {
-          naveImg.onload = () =>
-            ctx.drawImage(
-              naveImg,
-              estado.nave.posicion.x,
-              estado.nave.posicion.y,
-              estado.nave.tamaño.ancho,
-              estado.nave.tamaño.alto
-            );
-        }
-      } else {
-        ctx.fillStyle = "#ffffff";
-        ctx.fillRect(
-          estado.nave.posicion.x,
-          estado.nave.posicion.y,
-          estado.nave.tamaño.ancho,
-          estado.nave.tamaño.alto
-        );
-      }
-
-      // ENEMIGOS
-      for (const e of estado.enemigos) {
-        if (e.spriteUrl) {
-          const img = new Image();
-          img.src = e.spriteUrl;
-          if (img.complete) {
-            ctx.drawImage(
-              img,
-              e.posicion.x,
-              e.posicion.y,
-              e.tamaño.ancho,
-              e.tamaño.alto
-            );
-          } else {
-            img.onload = () =>
-              ctx.drawImage(
-                img,
-                e.posicion.x,
-                e.posicion.y,
-                e.tamaño.ancho,
-                e.tamaño.alto
-              );
-          }
-        } else {
-          ctx.fillStyle =
-            e.tipo === "basico"
-              ? "#00f5ff"
-              : e.tipo === "rapido"
-              ? "#ff9f1c"
-              : "#ff4d6d";
-          ctx.fillRect(
-            e.posicion.x,
-            e.posicion.y,
-            e.tamaño.ancho,
-            e.tamaño.alto
-          );
-        }
-      }
-
-      // PROYECTILES
-      for (const p of estado.proyectiles) {
-        ctx.beginPath();
-        ctx.fillStyle = "#97152bff";
-        ctx.arc(p.posicion.x, p.posicion.y, p.radio, 0, Math.PI * 2);
-        ctx.fill();
-      }
-
-      // UI (arriba a la izquierda)
-      ctx.fillStyle = "#ffffff";
-      ctx.font = "16px monospace";
-      ctx.fillText(`Puntos: ${estado.puntuacion}`, 12, 22);
-      ctx.fillText(`Vida: ${estado.nave.vida}`, 12, 44);
-
-      raf = requestAnimationFrame(renderLoop);
-    }
-
-    raf = requestAnimationFrame(renderLoop);
-    return () => cancelAnimationFrame(raf);
-  }, [ancho, alto, estadoRef, juegoIniciado]);
+    const t = setTimeout(() => canvasRef.current?.focus(), 0);
+    return () => clearTimeout(t);
+  }, [juegoIniciado]);
 
   return (
     <div className="container text-center mt-4">
@@ -176,85 +65,99 @@ export default function JuegoConPuntuaciones({
               transform: "translate(-50%, -50%)",
               minWidth: 180,
             }}
-            onClick={() => setJuegoIniciado(true)}
+            onClick={() => {
+              setJuegoIniciado(true);
+              try {
+                iniciar();
+              } catch (e) {
+                console.error("Error iniciando juego:", e);
+              }
+            }}
           >
             🚀 Empezar Juego
           </button>
         )}
-      </div>
 
-      {/* Modal de Game Over / Victoria (siempre centrado en pantalla) */}
-      {gameOver && (
-        <div
-          style={{
-            position: "fixed",
-            left: 0,
-            top: 0,
-            width: "100vw",
-            height: "100vh",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            background: "rgba(0,0,0,0.65)",
-            zIndex: 9999,
-          }}
-        >
+        {/* Overlay de Game Over / Victoria — ahora dentro del contenedor del juego */}
+        {gameOver && (
           <div
-            className="bg-dark text-white p-4 rounded shadow-lg animate__animated animate__zoomIn"
-            style={{ width: "90%", maxWidth: 480, textAlign: "center" }}
+            style={{
+              position: "absolute",
+              left: 0,
+              top: 0,
+              width: "100%",
+              height: "100%",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              background: "rgba(0,0,0,0.65)",
+              zIndex: 9999,
+              borderRadius: "0.5rem", // coincide con el canvas rounded
+            }}
           >
-            <h2 className="mb-2">
-              {gameOver.tipo === "derrota" ? "💀 Game Over" : "🏆 ¡Victoria!"}
-            </h2>
-            <p className="mb-2">{gameOver.mensaje}</p>
-            <p className="fw-bold mb-3">Puntuación final: {puntuacion}</p>
-            <div className="d-flex gap-3 justify-content-center">
-              <button className="btn btn-success" onClick={() => reiniciar()}>
-                Reiniciar
-              </button>
-              <button
-                className="btn btn-outline-light"
-                onClick={() => window.location.reload()}
-              >
-                Salir
-              </button>
+            <div
+              className="bg-dark text-white p-4 rounded shadow-lg animate__animated animate__zoomIn"
+              style={{ width: "90%", maxWidth: 480, textAlign: "center" }}
+            >
+              <h2 className="mb-2">
+                {gameOver.tipo === "derrota" ? "💀 Game Over" : "🏆 ¡Victoria!"}
+              </h2>
+              <p className="mb-2">{gameOver.mensaje}</p>
+              <p className="fw-bold mb-3">Puntuación final: {puntuacion}</p>
+              <div className="d-flex gap-3 justify-content-center">
+                <button
+                  className="btn btn-success"
+                  onClick={() => {
+                    setJuegoIniciado(true);
+                    reiniciar();
+                  }}
+                >
+                  Reiniciar
+                </button>
+                <button
+                  className="btn btn-outline-light"
+                  onClick={() => window.location.reload()}
+                >
+                  Salir
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
 
-      {/* Tabla de puntuaciones */}
-      {juegoIniciado && (
-        <div className="mt-5">
-          <h3 className="fw-bold text-center mb-3">🏅 Top 10</h3>
-          {cargando && <p className="text-center text-muted">Cargando...</p>}
-          {error && <p className="text-center text-danger">Error: {error}</p>}
-          {!cargando && !error && (
-            <div className="table-responsive shadow-sm rounded">
-              <table className="table table-striped table-hover mb-0">
-                <thead className="table-dark">
-                  <tr>
-                    <th style={{ width: 60 }}>Pos</th>
-                    <th>Jugador</th>
-                    <th style={{ width: 120 }}>Puntos</th>
-                    <th style={{ width: 200 }}>Fecha</th>
+      {/* Tabla de puntuaciones: mostrar siempre, pero su contenido depende de cargando/error */}
+      <div className="mt-5">
+        <h3 className="fw-bold text-center mb-3">🏅 Top 10</h3>
+
+        {cargando && <p className="text-center text-muted">Cargando...</p>}
+        {error && <p className="text-center text-danger">Error: {error}</p>}
+
+        {!cargando && !error && (
+          <div className="table-responsive shadow-sm rounded">
+            <table className="table table-striped table-hover mb-0">
+              <thead className="table-dark">
+                <tr>
+                  <th style={{ width: 60 }}>Pos</th>
+                  <th>Jugador</th>
+                  <th style={{ width: 120 }}>Puntos</th>
+                  <th style={{ width: 200 }}>Fecha</th>
+                </tr>
+              </thead>
+              <tbody>
+                {puntuaciones.map((p, i) => (
+                  <tr key={p.id}>
+                    <td>{i + 1}</td>
+                    <td>{p.nombreUsuario}</td>
+                    <td>{p.valorPuntuacion}</td>
+                    <td>{new Date(p.fechaRegistro).toLocaleString()}</td>
                   </tr>
-                </thead>
-                <tbody>
-                  {puntuaciones.map((p, i) => (
-                    <tr key={p.id}>
-                      <td>{i + 1}</td>
-                      <td>{p.nombreUsuario}</td>
-                      <td>{p.valorPuntuacion}</td>
-                      <td>{new Date(p.fechaRegistro).toLocaleString()}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
-      )}
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
 
       {/* Sección decorativa inferior */}
       <section className="mt-5">
