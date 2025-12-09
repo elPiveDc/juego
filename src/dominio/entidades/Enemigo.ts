@@ -10,7 +10,7 @@ export class Enemigo {
     public velocidad: number,
     public danio: number,
     public valorPuntuacion: number,
-    public tamaño: { ancho: number; alto: number } = { ancho: 32, alto: 24 },
+    public tamaño: { ancho: number; alto: number } = { ancho: 64, alto: 48 },
     public vida: number = 1,
     public spriteUrl: string = "/enemigo_basico.png"
   ) {}

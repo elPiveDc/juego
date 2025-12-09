@@ -59,39 +59,51 @@
       }
     },
     {
-      "id": "id_9zq7gw15mixoo54f",
-      "nombreUsuario": "JugadorLocal",
-      "valorPuntuacion": 1350,
-      "fechaRegistro": "2025-12-08T21:48:33.135Z",
-      "detallesPartida": {
-        "motivo": "victoria",
-        "mensaje": "Todos los enemigos salieron de la pantalla. Oleada terminada.",
-        "tiempoSegundos": 16.252699999995468,
-        "enemigosRestantes": 3
-      }
-    },
-    {
-      "id": "id_ukuyzpbrmixoocue",
+      "id": "id_yft8qiywmixvsc2t",
       "nombreUsuario": "JugadorLocal",
       "valorPuntuacion": 0,
-      "fechaRegistro": "2025-12-08T21:48:43.142Z",
+      "fechaRegistro": "2025-12-09T01:07:46.085Z",
       "detallesPartida": {
         "motivo": "derrota",
         "mensaje": "La nave fue destruida",
-        "tiempoSegundos": 5.296299999998519,
+        "tiempoSegundos": 12.07979999999404,
         "enemigosRestantes": 12
       }
     },
     {
-      "id": "id_4oufupxnmixopg9u",
+      "id": "id_int0xj98mixvsmi2",
       "nombreUsuario": "JugadorLocal",
-      "valorPuntuacion": 1100,
-      "fechaRegistro": "2025-12-08T21:49:34.242Z",
+      "valorPuntuacion": 100,
+      "fechaRegistro": "2025-12-09T01:07:59.594Z",
       "detallesPartida": {
         "motivo": "derrota",
         "mensaje": "La nave fue destruida",
-        "tiempoSegundos": 8.261200000000029,
-        "enemigosRestantes": 4
+        "tiempoSegundos": 4.898699999994044,
+        "enemigosRestantes": 11
+      }
+    },
+    {
+      "id": "id_0602fiecmixvt7un",
+      "nombreUsuario": "JugadorLocal",
+      "valorPuntuacion": 1350,
+      "fechaRegistro": "2025-12-09T01:08:27.263Z",
+      "detallesPartida": {
+        "motivo": "derrota",
+        "mensaje": "La nave fue destruida",
+        "tiempoSegundos": 12.229599999998474,
+        "enemigosRestantes": 3
+      }
+    },
+    {
+      "id": "id_zz187gz6mixvtgwb",
+      "nombreUsuario": "JugadorLocal",
+      "valorPuntuacion": 600,
+      "fechaRegistro": "2025-12-09T01:08:38.987Z",
+      "detallesPartida": {
+        "motivo": "derrota",
+        "mensaje": "La nave fue destruida",
+        "tiempoSegundos": 6.889099999994059,
+        "enemigosRestantes": 8
       }
     }
   ],

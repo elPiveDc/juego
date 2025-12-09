@@ -7,7 +7,7 @@ export class NaveJugador {
     public spriteUrl: string = "/mi_negocio.png",
     public posicion: Vector2D,
     public velocidad: number,
-    public tamaño: { ancho: number; alto: number } = { ancho: 40, alto: 28 }
+    public tamaño: { ancho: number; alto: number } = { ancho: 80, alto: 56 }
   ) {}
 
   recibirDanio(d: number) {
