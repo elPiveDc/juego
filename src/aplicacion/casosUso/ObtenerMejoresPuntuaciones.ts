@@ -5,5 +5,6 @@ export async function ObtenerMejoresPuntuaciones(
   repo: RepositorioPuntuacion,
   limit = 10
 ): Promise<Puntuacion[]> {
-  return repo.obtenerTop(limit);
+  const datos = await repo.obtenerTop(limit);
+  return datos.sort((a, b) => b.valorPuntuacion - a.valorPuntuacion);
 }

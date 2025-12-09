@@ -1,7 +1,4 @@
 import { useEffect, useRef, useState } from "react";
-import { AdaptadorAxios } from "../../infraestructura/http/AdaptadorAxios";
-import { RepositorioPuntuacionJsonServer } from "../../infraestructura/repositorios/RepositorioPuntuacionJsonServer";
-import { GeneradorIDUnico } from "../../infraestructura/util/GeneradorIDUnico";
 import { ConfiguracionNivel } from "../../dominio/entidades/ConfiguracionNivel";
 import { IniciarNuevaPartida } from "../../aplicacion/casosUso/IniciarNuevaPartida";
 import { MotorFisicoJuego } from "../../dominio/servicios/MotorFisicoJuego";
@@ -14,45 +11,56 @@ import { JuegoTerminadoError } from "../../dominio/errores/JuegoTerminadoError";
 import { ObtenerMejoresPuntuaciones } from "../../aplicacion/casosUso/ObtenerMejoresPuntuaciones";
 import { Puntuacion } from "../../dominio/entidades/Puntuacion";
 
+import { RepositorioPuntuacion } from "../../dominio/puertos/RepositorioPuntuacion";
+import { GeneradorID } from "../../dominio/puertos/GeneradorID";
+
 type GameOver = { tipo: "derrota" | "victoria"; mensaje: string };
 
 export function useJuegoConPuntuaciones(
   ancho: number,
   alto: number,
-  limit: number = 10
+  limit: number,
+  repo: RepositorioPuntuacion,
+  gen: GeneradorID
 ) {
   // --- Estados públicos ---
   const [puntuacion, setPuntuacion] = useState(0);
   const [gameOver, setGameOver] = useState<null | GameOver>(null);
 
-  // --- Refs internos (fuente de verdad del juego) ---
+  // --- Refs internos ---
   const estadoRef = useRef<EstadoJuego | null>(null);
   const rafRef = useRef<number | null>(null);
   const guardadoRef = useRef(false);
   const ultimoRef = useRef<number>(performance.now());
   const inputRef = useRef({ moverX: 0, disparar: false });
 
-  // --- Instancias estables (useRef para que no cambien entre renders) ---
+  // --- Instancias estables ---
   const motor = useRef(new MotorFisicoJuego()).current;
-  const gen = useRef(new GeneradorIDUnico()).current;
-  const http = useRef(new AdaptadorAxios("http://localhost:3000")).current;
-  const repo = useRef(new RepositorioPuntuacionJsonServer(http)).current;
-  const configuracion = useRef(new ConfiguracionNivel(80, 1.2, 12, 0.02)).current;
+  const configuracion = useRef(
+    new ConfiguracionNivel(80, 1.2, 12, 0.02)
+  ).current;
 
-  // --- Estados de UI / puntuaciones ---
+  // --- Estados de UI ---
   const [puntuaciones, setPuntuaciones] = useState<Puntuacion[]>([]);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   // --- Guardar y terminar partida ---
-  async function detenerYGuardar(tipo: "derrota" | "victoria", mensaje: string, detalles: any = {}) {
+  async function detenerYGuardar(
+    tipo: "derrota" | "victoria",
+    mensaje: string,
+    detalles: any = {}
+  ) {
     if (rafRef.current != null) {
       cancelAnimationFrame(rafRef.current);
       rafRef.current = null;
     }
+
     if (!guardadoRef.current) {
       guardadoRef.current = true;
+
       const punt = estadoRef.current?.puntuacion ?? puntuacion;
+
       try {
         await GuardarPuntuacionFinal(repo, gen, "JugadorLocal", punt, {
           motivo: tipo,
@@ -61,18 +69,18 @@ export function useJuegoConPuntuaciones(
           enemigosRestantes: estadoRef.current?.enemigos.length ?? 0,
           ...detalles,
         });
-        // refrescar puntuaciones después de guardar
+
         const nuevas = await ObtenerMejoresPuntuaciones(repo, limit);
         setPuntuaciones(nuevas);
       } catch (e) {
         console.error("Error guardando o refrescando puntuaciones", e);
       }
     }
+
     setGameOver({ tipo, mensaje });
   }
 
-
-  // --- Loop del juego ---
+  // --- Loop ---
   function loop(now: number) {
     const delta = (now - ultimoRef.current) / 1000;
     ultimoRef.current = now;
@@ -112,18 +120,17 @@ export function useJuegoConPuntuaciones(
     } catch (err) {
       if (err instanceof JuegoTerminadoError) {
         detenerYGuardar("derrota", err.message);
-        return;
       } else {
         console.error("Error inesperado en loop:", err);
         detenerYGuardar("derrota", "Error inesperado en el juego");
-        return;
       }
+      return;
     }
 
     rafRef.current = requestAnimationFrame(loop);
   }
 
-  // --- Inicializar partida al montar (no arranca el loop) ---
+  // --- Inicializar partida ---
   useEffect(() => {
     const partida = IniciarNuevaPartida(gen, configuracion, ancho);
     estadoRef.current = new EstadoJuego(
@@ -133,6 +140,7 @@ export function useJuegoConPuntuaciones(
       partida.puntuacion,
       partida.tiempoTranscurrido
     );
+
     setPuntuacion(0);
     setGameOver(null);
     guardadoRef.current = false;
@@ -142,26 +150,23 @@ export function useJuegoConPuntuaciones(
       if (rafRef.current != null) cancelAnimationFrame(rafRef.current);
       rafRef.current = null;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [ancho, alto, gen, configuracion]); // motor, repo, http son refs estables
+  }, [ancho, alto, gen, configuracion]);
 
-  // --- Exponer iniciar con protección contra múltiples llamadas ---
+  // --- Iniciar loop ---
   function iniciar() {
-    // reset de inputs por si quedó algo
     inputRef.current.moverX = 0;
     inputRef.current.disparar = false;
     ultimoRef.current = performance.now();
-    if (rafRef.current == null) {
-      rafRef.current = requestAnimationFrame(loop);
-    }
+    if (rafRef.current == null) rafRef.current = requestAnimationFrame(loop);
   }
 
-  // --- Reiniciar (siempre reinicia y arranca loop) ---
+  // --- Reiniciar ---
   function reiniciar() {
     if (rafRef.current != null) {
       cancelAnimationFrame(rafRef.current);
       rafRef.current = null;
     }
+
     guardadoRef.current = false;
     setPuntuacion(0);
     setGameOver(null);
@@ -179,25 +184,27 @@ export function useJuegoConPuntuaciones(
     rafRef.current = requestAnimationFrame(loop);
   }
 
-  // --- Obtener mejores puntuaciones (efecto separado) ---
+  // --- Obtener mejores puntuaciones ---
   useEffect(() => {
     let mounted = true;
+
     ObtenerMejoresPuntuaciones(repo, limit)
       .then((data) => {
-        if (mounted) setPuntuaciones(data);
+        if (!mounted) return;
+        const ordenadas = [...data].sort(
+          (a, b) => b.valorPuntuacion - a.valorPuntuacion
+        );
+        setPuntuaciones(ordenadas);
       })
-      .catch((e) => {
-        if (mounted) setError(e.message);
-      })
-      .finally(() => {
-        if (mounted) setCargando(false);
-      });
+      .catch((e) => mounted && setError(e.message))
+      .finally(() => mounted && setCargando(false));
+
     return () => {
       mounted = false;
     };
   }, [repo, limit]);
 
-  // --- Input keyboard (registrado una vez) ---
+  // --- Input ---
   useEffect(() => {
     function keyDown(e: KeyboardEvent) {
       if (e.key === "ArrowLeft") inputRef.current.moverX = -1;
@@ -221,13 +228,13 @@ export function useJuegoConPuntuaciones(
 
     window.addEventListener("keydown", keyDown);
     window.addEventListener("keyup", keyUp);
+
     return () => {
       window.removeEventListener("keydown", keyDown);
       window.removeEventListener("keyup", keyUp);
     };
   }, []);
 
-  // --- API pública del hook ---
   return {
     estadoRef,
     puntuacion,

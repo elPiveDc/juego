@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useJuegoConPuntuaciones } from "../hooks/useJuegoConPuntuaciones";
 import { useCanvasRenderer } from "../hooks/useCanvasRenderer";
+import { useGameDependencies } from "../context/GameContext";
 
 type Props = { ancho?: number; alto?: number };
 
@@ -11,6 +12,8 @@ export default function JuegoConPuntuaciones({
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [juegoIniciado, setJuegoIniciado] = useState(false);
 
+  const { repo, gen } = useGameDependencies();
+
   const {
     estadoRef,
     puntuacion,
@@ -20,7 +23,7 @@ export default function JuegoConPuntuaciones({
     puntuaciones,
     cargando,
     error,
-  } = useJuegoConPuntuaciones(ancho, alto, 10);
+  } = useJuegoConPuntuaciones(ancho, alto, 10, repo, gen);
 
   useCanvasRenderer(canvasRef, estadoRef, ancho, alto, juegoIniciado);
 

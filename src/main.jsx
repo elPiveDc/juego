@@ -4,7 +4,7 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap-icons/font/bootstrap-icons.css';
 import 'animate.css';
 import './index.css'
-import App from './App.jsx'
+import App from './App.js'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>

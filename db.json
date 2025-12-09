@@ -47,63 +47,27 @@
       }
     },
     {
-      "id": "id_57mbwmrimixonlcv",
+      "id": "id_f1m23351miz7n1pp",
       "nombreUsuario": "JugadorLocal",
-      "valorPuntuacion": 1450,
-      "fechaRegistro": "2025-12-08T21:48:07.519Z",
+      "valorPuntuacion": 1550,
+      "fechaRegistro": "2025-12-09T23:27:20.941Z",
       "detallesPartida": {
         "motivo": "victoria",
-        "mensaje": "Todos los enemigos salieron de la pantalla. Oleada terminada.",
-        "tiempoSegundos": 16.26259999999549,
-        "enemigosRestantes": 2
+        "mensaje": "¡Has derrotado a todos los enemigos!",
+        "tiempoSegundos": 11.858499999998905,
+        "enemigosRestantes": 1
       }
     },
     {
-      "id": "id_yft8qiywmixvsc2t",
+      "id": "id_3powdbq1miz7nhv3",
       "nombreUsuario": "JugadorLocal",
-      "valorPuntuacion": 0,
-      "fechaRegistro": "2025-12-09T01:07:46.085Z",
+      "valorPuntuacion": 1550,
+      "fechaRegistro": "2025-12-09T23:27:41.871Z",
       "detallesPartida": {
-        "motivo": "derrota",
-        "mensaje": "La nave fue destruida",
-        "tiempoSegundos": 12.07979999999404,
-        "enemigosRestantes": 12
-      }
-    },
-    {
-      "id": "id_int0xj98mixvsmi2",
-      "nombreUsuario": "JugadorLocal",
-      "valorPuntuacion": 100,
-      "fechaRegistro": "2025-12-09T01:07:59.594Z",
-      "detallesPartida": {
-        "motivo": "derrota",
-        "mensaje": "La nave fue destruida",
-        "tiempoSegundos": 4.898699999994044,
-        "enemigosRestantes": 11
-      }
-    },
-    {
-      "id": "id_0602fiecmixvt7un",
-      "nombreUsuario": "JugadorLocal",
-      "valorPuntuacion": 1350,
-      "fechaRegistro": "2025-12-09T01:08:27.263Z",
-      "detallesPartida": {
-        "motivo": "derrota",
-        "mensaje": "La nave fue destruida",
-        "tiempoSegundos": 12.229599999998474,
-        "enemigosRestantes": 3
-      }
-    },
-    {
-      "id": "id_zz187gz6mixvtgwb",
-      "nombreUsuario": "JugadorLocal",
-      "valorPuntuacion": 600,
-      "fechaRegistro": "2025-12-09T01:08:38.987Z",
-      "detallesPartida": {
-        "motivo": "derrota",
-        "mensaje": "La nave fue destruida",
-        "tiempoSegundos": 6.889099999994059,
-        "enemigosRestantes": 8
+        "motivo": "victoria",
+        "mensaje": "¡Has derrotado a todos los enemigos!",
+        "tiempoSegundos": 11.61190000000001,
+        "enemigosRestantes": 1
       }
     }
   ],
